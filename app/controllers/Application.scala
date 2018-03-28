@@ -22,10 +22,10 @@ class Application extends Controller  {
 
   def simpleQuery = Action { request =>
 
-
+    //request from extranl source
     val json = request.body.toString
 
-
+    //removing characters from request
     val format_str = json.substring(17, json.length - 1)
     var splitObj = new JSONObject(format_str)
 
@@ -34,7 +34,7 @@ class Application extends Controller  {
     var sumcols = splitObj.getJSONArray("sum")
 
 
-    val uri = ElasticsearchClientUri("elasticsearch://localhost:9300")
+    val uri = ElasticsearchClientUri("elasticsearch://10.1.100.111:8200")
     val client = ElasticClient.remote(uri)
 
     var outputJsonArr = new JSONArray()
@@ -51,11 +51,12 @@ class Application extends Controller  {
       }
 
       val el_json = client.execute {
-        search("final4/type4").matchAllQuery().aggs {
+        search("demofinal/demotest").matchAllQuery().aggs {
           termsAgg("termagg1", groupcol).subaggs(
             sumAgg("sumagg1", sumcols.get(0).toString))
         }
       }.await
+      //json parsing to get the KMM required output format
       var data = el_json.toString;
       data = data.substring(19, data.length - 1)
       val SRJSON = new JSONObject(data)
@@ -84,10 +85,10 @@ class Application extends Controller  {
         groupcol1=groupcol1+".keyword"
       }
 
-      println("groupcol..............:"+groupcol)
-      println("groupcol..............:"+groupcol1)
+     // println("groupcol..............:"+groupcol)
+      //println("groupcol..............:"+groupcol1)
       val el_json = client.execute {
-        search("final4/type4").matchAllQuery().aggs {
+        search("demofinal/demotest").matchAllQuery().aggs {
           termsAgg("termagg1", groupcol).subAggregations(
             termsAgg("termagg2", groupcol1).subAggregations(
               sumAgg("sumagg1", sumcols.get(0).toString)
@@ -141,7 +142,7 @@ class Application extends Controller  {
       }
 
       val el_json = client.execute {
-        search("final4/type4").matchAllQuery().aggs {
+        search("demofinal/demotest").matchAllQuery().aggs {
           termsAgg("termagg1", groupcol).subAggregations(
             termsAgg("termagg2", groupcol1).subAggregations(
               termsAgg("termagg3", groupcol2).subAggregations(
@@ -212,7 +213,7 @@ class Application extends Controller  {
       }
 
       val el_json = client.execute {
-        search("final4/type4").matchAllQuery().aggs {
+        search("demofinal/demotest").matchAllQuery().aggs {
           termsAgg("termagg1", groupcol).subAggregations(
             termsAgg("termagg2", groupcol1).subAggregations(
               termsAgg("termagg3",groupcol2).subAggregations(
@@ -272,6 +273,7 @@ class Application extends Controller  {
     val SRJSON2 = Json.parse(outputJsonArr.toString)
 
     //  val personReads = Json.reads[SRJSON]
+    println("Response generated successfully")
     Ok((SRJSON2))
 
 
