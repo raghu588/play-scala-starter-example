@@ -2,8 +2,8 @@ package controllers
 
 
 import com.sksamuel.elastic4s.ElasticDsl._
-import com.sksamuel.elastic4s.{ElasticClient, ElasticsearchClientUri}
-import elastic.scalaesclient.TcpClientExampleApp.{client, /*data,*/ json}
+import com.sksamuel.elastic4s.{ElasticClient, ElasticsearchClientUri, TcpClient}
+import elastic.scalaesclient.TcpClientExampleApp.{client, json}
 import org.elasticsearch.action.search.SearchResponse
 import play.api.libs.json.JsonNaming
 import play.api.mvc._
@@ -34,9 +34,12 @@ class Application extends Controller  {
     var sumcols = splitObj.getJSONArray("sum")
 
 
-    val uri = ElasticsearchClientUri("elasticsearch://10.1.100.111:8300")
-    val client = ElasticClient.remote(uri)
+    //val uri = ElasticsearchClientUri("elasticsearch://10.1.100.111:8300")
+    //val client = ElasticClient.remote(uri)
+    import org.elasticsearch.common.settings.Settings
 
+    val settings = Settings.builder().put("cluster.name", "Test Cluster").build()
+    val client = TcpClient.transport(settings, ElasticsearchClientUri("elasticsearch://10.1.100.111:8300"))
     var outputJsonArr = new JSONArray()
     if (groupcols.length() == 1 && sumcols.length() == 1) {
 
