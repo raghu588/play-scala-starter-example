@@ -34,7 +34,7 @@ class Application extends Controller  {
     var sumcols = splitObj.getJSONArray("sum")
 
 
-    val uri = ElasticsearchClientUri("elasticsearch://10.1.100.111:8200")
+    val uri = ElasticsearchClientUri("elasticsearch://10.1.100.111:8300")
     val client = ElasticClient.remote(uri)
 
     var outputJsonArr = new JSONArray()
