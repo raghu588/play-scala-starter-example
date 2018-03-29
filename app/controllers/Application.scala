@@ -5,17 +5,17 @@ import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.{ElasticsearchClientUri, TcpClient}
 import play.api.mvc._
 
-class Application extends Controller  {
+class Application extends Controller {
 
   import org.json._
   import play.api.libs.json.Json
 
 
   val cols = Map("nrf_year" -> "Int", "nrf_season" -> "String", "nrf_quarter" -> "Int",
-    "nrf_month" -> "Int" ,"nrf_week" -> "Int","nrf_day" -> "Int","loc_id" -> "Int",
-    "rgn_id" -> "Int","itm_sku_id" -> "String", "colorfamily" -> "String","net_sales" -> "String",
-    "net_sls_qty" -> "String","wt_unt_cst_amt" -> "String","itm_msty_cd" -> "long","prod_ctgy_cd" -> "Int",
-    "sz1_cd" -> "String","SZ1_CD" -> "String","ITM_MSTY_CD"->"long","LOC_ID"->"Int","PROD_CTGY_CD"->"Int","loc_id" -> "Int")
+    "nrf_month" -> "Int", "nrf_week" -> "Int", "nrf_day" -> "Int", "loc_id" -> "Int",
+    "rgn_id" -> "Int", "itm_sku_id" -> "String", "colorfamily" -> "String", "net_sales" -> "String",
+    "net_sls_qty" -> "String", "wt_unt_cst_amt" -> "String", "itm_msty_cd" -> "long", "prod_ctgy_cd" -> "Int",
+    "sz1_cd" -> "String", "SZ1_CD" -> "String", "ITM_MSTY_CD" -> "long", "LOC_ID" -> "Int", "PROD_CTGY_CD" -> "Int", "loc_id" -> "Int")
 
   def simpleQuery = Action { request =>
 
@@ -31,13 +31,13 @@ class Application extends Controller  {
 
     var cols_match = Array.empty[String]
 
-    if(whrindx>0){
+    if (whrindx > 0) {
 
-      cqlqry = cqlqry.substring(whrindx+5)
+      cqlqry = cqlqry.substring(whrindx + 5)
 
-      cqlqry =cqlqry.replace(";","")
+      cqlqry = cqlqry.replace(";", "")
 
-       cols_match = cqlqry.split("=").map(x=>x.replace("\"",""))
+      cols_match = cqlqry.split("=").map(x => x.replace("\"", ""))
 
 
     }
@@ -50,23 +50,21 @@ class Application extends Controller  {
     //val client = ElasticClient.remote(uri)
 
 
-
-
-    var str=""
-    if(sumcols.getString(0).equals("net_sales")){
-      str=sumcols.getString(0).replace("net_sales","sales")
+    var str = ""
+    if (sumcols.getString(0).equals("net_sales")) {
+      str = sumcols.getString(0).replace("net_sales", "sales")
 
     }
-    if(sumcols.getString(0).equals("nrf_week")){
-      str=sumcols.getString(0).replace("nrf_week","week")
+    if (sumcols.getString(0).equals("nrf_week")) {
+      str = sumcols.getString(0).replace("nrf_week", "week")
 
     }
-    if(sumcols.getString(0).equals("colorfamily")){
-      str=sumcols.getString(0).replace("colorfamily","color family")
+    if (sumcols.getString(0).equals("colorfamily")) {
+      str = sumcols.getString(0).replace("colorfamily", "color family")
 
     }
-    if(sumcols.getString(0).equals("net_sls_qty")){
-      str=sumcols.getString(0).replace("net_sls_qty","sales volume")
+    if (sumcols.getString(0).equals("net_sls_qty")) {
+      str = sumcols.getString(0).replace("net_sls_qty", "sales volume")
 
     }
 
@@ -79,14 +77,13 @@ class Application extends Controller  {
 
 
       // now we can search for the document we just indexed
-     var groupcol = groupcols.get(0).toString
+      var groupcol = groupcols.get(0).toString
 
 
-      if(cols.get(groupcol).get.equals("String")){
+      if (cols.get(groupcol).get.equals("String")) {
 
-        groupcol =groupcol+".keyword"
+        groupcol = groupcol + ".keyword"
       }
-
 
 
       val el_json = /*client.execute {
@@ -98,32 +95,32 @@ class Application extends Controller  {
         client.execute {
           search("final4/type4").matchQuery(cols_match(0).trim, cols_match(1).trim).aggregations {
             termsAgg("termagg1", groupcol).subaggs(
-            sumAgg("sumagg1", sumcols.get(0).toString))
+              sumAgg("sumagg1", sumcols.get(0).toString))
           }
         }.await
 
-      /println("response......:"+el_json)
+      // println ("response......:" + el_json)
       //json parsing to get the KMM required output format
       var data = el_json.toString;
       data = data.substring(19, data.length - 1)
       val SRJSON = new JSONObject(data)
       val json2 = SRJSON.getJSONObject("aggregations").getJSONObject("termagg1").getJSONArray("buckets")
 
-      var grpstr=""
-      if(sumcols.getString(0).equals("net_sales")){
-        grpstr=sumcols.getString(0).replace("net_sales","sales")
+      var grpstr = ""
+      if (sumcols.getString(0).equals("net_sales")) {
+        grpstr = sumcols.getString(0).replace("net_sales", "sales")
 
       }
-      if(groupcols.getString(0).equals("nrf_week")){
-        grpstr=groupcols.getString(0).replace("nrf_week","week")
+      if (groupcols.getString(0).equals("nrf_week")) {
+        grpstr = groupcols.getString(0).replace("nrf_week", "week")
 
       }
-      if(groupcols.getString(0).equals("colorfamily")){
-        grpstr=groupcols.getString(0).replace("colorfamily","color family")
+      if (groupcols.getString(0).equals("colorfamily")) {
+        grpstr = groupcols.getString(0).replace("colorfamily", "color family")
 
       }
-      if(groupcols.getString(0).equals("net_sls_qty")){
-        grpstr=groupcols.getString(0).replace("net_sls_qty","sales volume")
+      if (groupcols.getString(0).equals("net_sls_qty")) {
+        grpstr = groupcols.getString(0).replace("net_sls_qty", "sales volume")
 
       }
       //println(".....:"+json2.length())
@@ -136,8 +133,8 @@ class Application extends Controller  {
         //outpuObj.put(sumcols.getString(0), "\""+json2.getJSONObject("sumagg").get("value")+"\"")
 
 
-     // println("lllllllllllll......:"+str)
-      ///outpuObj.put(str, json2.getJSONObject("sumagg").get("value").toString)
+        // println("lllllllllllll......:"+str)
+        ///outpuObj.put(str, json2.getJSONObject("sumagg").get("value").toString)
         outputJsonArr.put(outpuObj)
 
 
@@ -147,15 +144,15 @@ class Application extends Controller  {
       var groupcol = groupcols.get(0).toString
       var groupcol1 = groupcols.get(1).toString
 
-      if(cols.get(groupcol).get.equals("String")){
-        groupcol =groupcol+".keyword"
+      if (cols.get(groupcol).get.equals("String")) {
+        groupcol = groupcol + ".keyword"
       }
-      if(cols.get(groupcol1).get.equals("String")){
+      if (cols.get(groupcol1).get.equals("String")) {
 
-        groupcol1=groupcol1+".keyword"
+        groupcol1 = groupcol1 + ".keyword"
       }
 
-     // println("groupcol..............:"+groupcol)
+      // println("groupcol..............:"+groupcol)
       //println("groupcol..............:"+groupcol1)
       val el_json = client.execute {
         search("final4/type4").matchAllQuery().aggs {
@@ -198,17 +195,17 @@ class Application extends Controller  {
       var groupcol1 = groupcols.get(1).toString
       var groupcol2 = groupcols.get(2).toString
 
-      if(cols.get(groupcol).get.equals("String")){
-        groupcol =groupcol+".keyword"
+      if (cols.get(groupcol).get.equals("String")) {
+        groupcol = groupcol + ".keyword"
       }
-      if(cols.get(groupcol1).get.equals("String")){
+      if (cols.get(groupcol1).get.equals("String")) {
 
-        groupcol1=groupcol1+".keyword"
+        groupcol1 = groupcol1 + ".keyword"
       }
 
-      if(cols.get(groupcol2).get.equals("String")){
+      if (cols.get(groupcol2).get.equals("String")) {
 
-        groupcol2=groupcol2+".keyword"
+        groupcol2 = groupcol2 + ".keyword"
       }
 
       val el_json = client.execute {
@@ -265,28 +262,28 @@ class Application extends Controller  {
       var groupcol2 = groupcols.get(2).toString
       var groupcol3 = groupcols.get(3).toString
 
-      if(cols.get(groupcol).get.equals("String")){
-        groupcol =groupcol+".keyword"
+      if (cols.get(groupcol).get.equals("String")) {
+        groupcol = groupcol + ".keyword"
       }
-      if(cols.get(groupcol1).get.equals("String")){
+      if (cols.get(groupcol1).get.equals("String")) {
 
-        groupcol1=groupcol1+".keyword"
+        groupcol1 = groupcol1 + ".keyword"
       }
 
-      if(cols.get(groupcol2).get.equals("String")){
+      if (cols.get(groupcol2).get.equals("String")) {
 
-        groupcol2=groupcol2+".keyword"
+        groupcol2 = groupcol2 + ".keyword"
       }
-      if(cols.get(groupcol3).get.equals("String")){
+      if (cols.get(groupcol3).get.equals("String")) {
 
-        groupcol3=groupcol3+".keyword"
+        groupcol3 = groupcol3 + ".keyword"
       }
 
       val el_json = client.execute {
         search("final4/type4").matchAllQuery().aggs {
           termsAgg("termagg1", groupcol).subAggregations(
             termsAgg("termagg2", groupcol1).subAggregations(
-              termsAgg("termagg3",groupcol2).subAggregations(
+              termsAgg("termagg3", groupcol2).subAggregations(
                 termsAgg("termagg4", groupcol3).subAggregations(
                   sumAgg("sumagg1", sumcols.get(0).toString)
                 )
