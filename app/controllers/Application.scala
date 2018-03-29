@@ -2,16 +2,13 @@ package controllers
 
 
 import com.sksamuel.elastic4s.ElasticDsl._
-import com.sksamuel.elastic4s.{ElasticClient, ElasticsearchClientUri, TcpClient}
-import elastic.scalaesclient.TcpClientExampleApp.{client, json}
-import org.elasticsearch.action.search.SearchResponse
-import play.api.libs.json.JsonNaming
+import com.sksamuel.elastic4s.{ElasticsearchClientUri, TcpClient}
 import play.api.mvc._
 
 class Application extends Controller  {
 
-  import play.api.libs.json.Json
   import org.json._
+  import play.api.libs.json.Json
 
 
   val cols = Map("nrf_year" -> "Int", "nrf_season" -> "String", "nrf_quarter" -> "Int",
@@ -29,13 +26,50 @@ class Application extends Controller  {
     val format_str = json.substring(17, json.length - 1)
     var splitObj = new JSONObject(format_str)
 
+    var cqlqry = splitObj.getString("cql")
+    var whrindx = cqlqry.indexOf("WHERE")
+
+    var cols_match = Array.empty[String]
+
+    if(whrindx>0){
+
+      cqlqry = cqlqry.substring(whrindx+5)
+
+      cqlqry =cqlqry.replace(";","")
+
+       cols_match = cqlqry.split("=").map(x=>x.replace("\"",""))
+
+
+    }
+
 
     var groupcols = splitObj.getJSONArray("groupBy")
     var sumcols = splitObj.getJSONArray("sum")
 
-
-    //val uri = ElasticsearchClientUri("elasticsearch://10.1.100.111:8300")
+    //val uri = ElasticsearchClientUri("elasticsearch://localhost:9300")
     //val client = ElasticClient.remote(uri)
+
+
+
+
+    var str=""
+    if(sumcols.getString(0).equals("net_sales")){
+      str=sumcols.getString(0).replace("net_sales","sales")
+
+    }
+    if(sumcols.getString(0).equals("nrf_week")){
+      str=sumcols.getString(0).replace("nrf_week","week")
+
+    }
+    if(sumcols.getString(0).equals("colorfamily")){
+      str=sumcols.getString(0).replace("colorfamily","color family")
+
+    }
+    if(sumcols.getString(0).equals("net_sls_qty")){
+      str=sumcols.getString(0).replace("net_sls_qty","sales volume")
+
+    }
+
     import org.elasticsearch.common.settings.Settings
 
     val settings = Settings.builder().put("cluster.name", "Test Cluster").build()
@@ -53,24 +87,57 @@ class Application extends Controller  {
         groupcol =groupcol+".keyword"
       }
 
-      val el_json = client.execute {
-        search("demofinal/demotest").matchAllQuery().aggs {
+
+
+      val el_json = /*client.execute {
+        search("final4/type4").matchQuery(colname,condition).aggs {
           termsAgg("termagg1", groupcol).subaggs(
             sumAgg("sumagg1", sumcols.get(0).toString))
         }
-      }.await
+      }.await*/
+        client.execute {
+          search("final4/type4").matchQuery(cols_match(0).trim, cols_match(1).trim).aggregations {
+            termsAgg("termagg1", groupcol).subaggs(
+            sumAgg("sumagg1", sumcols.get(0).toString))
+          }
+        }.await
+
+      /println("response......:"+el_json)
       //json parsing to get the KMM required output format
       var data = el_json.toString;
       data = data.substring(19, data.length - 1)
       val SRJSON = new JSONObject(data)
       val json2 = SRJSON.getJSONObject("aggregations").getJSONObject("termagg1").getJSONArray("buckets")
 
+      var grpstr=""
+      if(sumcols.getString(0).equals("net_sales")){
+        grpstr=sumcols.getString(0).replace("net_sales","sales")
+
+      }
+      if(groupcols.getString(0).equals("nrf_week")){
+        grpstr=groupcols.getString(0).replace("nrf_week","week")
+
+      }
+      if(groupcols.getString(0).equals("colorfamily")){
+        grpstr=groupcols.getString(0).replace("colorfamily","color family")
+
+      }
+      if(groupcols.getString(0).equals("net_sls_qty")){
+        grpstr=groupcols.getString(0).replace("net_sls_qty","sales volume")
+
+      }
+      //println(".....:"+json2.length())
       for (i <- 0 until json2.length()) {
 
         val dataObj = json2.getJSONObject(i)
         val outpuObj = new JSONObject()
-        outpuObj.put(groupcols.getString(0), dataObj.getString("key"))
-        outpuObj.put(sumcols.getString(0), dataObj.getJSONObject("sumagg1").get("value"))
+        outpuObj.put(grpstr, dataObj.get("key").toString)
+        outpuObj.put(str, dataObj.getJSONObject("sumagg1").get("value").toString)
+        //outpuObj.put(sumcols.getString(0), "\""+json2.getJSONObject("sumagg").get("value")+"\"")
+
+
+     // println("lllllllllllll......:"+str)
+      ///outpuObj.put(str, json2.getJSONObject("sumagg").get("value").toString)
         outputJsonArr.put(outpuObj)
 
 
@@ -91,7 +158,7 @@ class Application extends Controller  {
      // println("groupcol..............:"+groupcol)
       //println("groupcol..............:"+groupcol1)
       val el_json = client.execute {
-        search("demofinal/demotest").matchAllQuery().aggs {
+        search("final4/type4").matchAllQuery().aggs {
           termsAgg("termagg1", groupcol).subAggregations(
             termsAgg("termagg2", groupcol1).subAggregations(
               sumAgg("sumagg1", sumcols.get(0).toString)
@@ -118,7 +185,7 @@ class Application extends Controller  {
 
           val termsmagg2Bucket = termsmagg2Buckets.getJSONObject(i)
           outpuObj.put(groupcols.getString(1), termsmagg2Bucket.get("key"))
-          outpuObj.put(sumcols.getString(0), termsmagg2Bucket.getJSONObject("sumagg1").get("value"))
+          outpuObj.put(str, termsmagg2Bucket.getJSONObject("sumagg1").get("value"))
           outputJsonArr.put(outpuObj)
         }
 
@@ -145,7 +212,7 @@ class Application extends Controller  {
       }
 
       val el_json = client.execute {
-        search("demofinal/demotest").matchAllQuery().aggs {
+        search("final4/type4").matchAllQuery().aggs {
           termsAgg("termagg1", groupcol).subAggregations(
             termsAgg("termagg2", groupcol1).subAggregations(
               termsAgg("termagg3", groupcol2).subAggregations(
@@ -181,7 +248,7 @@ class Application extends Controller  {
 
             val termsmagg3Bucket = termsmagg3Buckets.getJSONObject(i)
             outpuObj.put(groupcols.getString(2), termsmagg3Bucket.get("key"))
-            outpuObj.put(sumcols.getString(0), termsmagg3Bucket.getJSONObject("sumagg1").get("value"))
+            outpuObj.put(str, termsmagg3Bucket.getJSONObject("sumagg1").get("value"))
 
           }
         }
@@ -216,7 +283,7 @@ class Application extends Controller  {
       }
 
       val el_json = client.execute {
-        search("demofinal/demotest").matchAllQuery().aggs {
+        search("final4/type4").matchAllQuery().aggs {
           termsAgg("termagg1", groupcol).subAggregations(
             termsAgg("termagg2", groupcol1).subAggregations(
               termsAgg("termagg3",groupcol2).subAggregations(
@@ -260,7 +327,7 @@ class Application extends Controller  {
 
               val termsmagg4Bucket = termsmagg4Buckets.getJSONObject(i)
               outpuObj.put(groupcols.getString(3), termsmagg4Bucket.get("key"))
-              outpuObj.put(sumcols.getString(0), termsmagg4Bucket.getJSONObject("sumagg1").get("value"))
+              outpuObj.put(str, termsmagg4Bucket.getJSONObject("sumagg1").get("value"))
 
             }
           }
