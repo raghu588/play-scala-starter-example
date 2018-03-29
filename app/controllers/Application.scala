@@ -30,24 +30,40 @@ class Application extends Controller {
     var whrindx = cqlqry.indexOf("WHERE")
 
     var cols_match = Array.empty[String]
-
+    var cols_match2 = Array.empty[String]
+    var cols_match3 = Array.empty[String]
+    var cols_match4 = Array.empty[String]
     if (whrindx > 0) {
 
       cqlqry = cqlqry.substring(whrindx + 5)
 
+
       cqlqry = cqlqry.replace(";", "")
 
-      cols_match = cqlqry.split("=").map(x => x.replace("\"", ""))
+      cols_match = cqlqry.split("and")//.map(x => x.replace("\"", ""))
 
+      cols_match2 =cols_match(0).split("=")
+
+      cols_match3 = cols_match(1).split("=")
+
+      cols_match4 = cols_match(2).split("In").map(x => x.replace("\"", ""))
 
     }
+
+//    println("........:"+cols_match2(0).toString+"kkkkk:"+cols_match2(1).toString)
+//    println("........:"+cols_match3(0).toString+"kkkkk:"+cols_match3(1).toString)
+//    println("........:"+cols_match4(0).toString+"kkkkk:"+cols_match4(1).toString)
+
+//println("................:"+cols_match4(0).toString+".......:"+cols_match4(1).replace("('","").replace("')","").trim.toString)
 
 
     var groupcols = splitObj.getJSONArray("groupBy")
     var sumcols = splitObj.getJSONArray("sum")
 
+
+
 //    val uri = ElasticsearchClientUri("elasticsearch://localhost:9300")
-    //    val client = ElasticClient.remote(uri)
+//        val client = ElasticClient.remote(uri)
 
 
     var str = ""
@@ -85,21 +101,30 @@ class Application extends Controller {
         groupcol = groupcol + ".keyword"
       }
 
-
+  //    println("........"+groupcol)
       val el_json = /*client.execute {
         search("final4/type4").matchQuery(colname,condition).aggs {
           termsAgg("termagg1", groupcol).subaggs(
             sumAgg("sumagg1", sumcols.get(0).toString))
         }
       }.await*/
+//        client.execute {
+//          search("final4/type4").matchQuery(cols_match(0).trim, cols_match(1).trim).aggregations {
+//            termsAgg("termagg1", groupcol).subaggs(
+//              sumAgg("sumagg1", sumcols.get(0).toString))
+//          }
+//        }.await
+
         client.execute {
-          search("demofinal/demotest").matchQuery(cols_match(0).trim, cols_match(1).trim).aggregations {
+          search("diwofinal/diwotest").query( must( matchQuery(cols_match2(0).trim,cols_match2(1).trim),matchQuery(cols_match3(0).trim,cols_match3(1).trim),matchQuery(cols_match4(0).trim,cols_match4(1).replace("('","").replace("')","").trim))).aggregations {
             termsAgg("termagg1", groupcol).subaggs(
               sumAgg("sumagg1", sumcols.get(0).toString))
           }
         }.await
 
-      // println ("response......:" + el_json)
+
+
+       println ("response......:" + el_json)
       //json parsing to get the KMM required output format
       var data = el_json.toString;
       data = data.substring(19, data.length - 1)
@@ -155,7 +180,7 @@ class Application extends Controller {
       // println("groupcol..............:"+groupcol)
       //println("groupcol..............:"+groupcol1)
       val el_json = client.execute {
-        search("demofinal/demotest").matchAllQuery().aggs {
+        search("final4/type4").matchAllQuery().aggs {
           termsAgg("termagg1", groupcol).subAggregations(
             termsAgg("termagg2", groupcol1).subAggregations(
               sumAgg("sumagg1", sumcols.get(0).toString)
@@ -209,7 +234,7 @@ class Application extends Controller {
       }
 
       val el_json = client.execute {
-        search("demofinal/demotest").matchAllQuery().aggs {
+        search("final4/type4").matchAllQuery().aggs {
           termsAgg("termagg1", groupcol).subAggregations(
             termsAgg("termagg2", groupcol1).subAggregations(
               termsAgg("termagg3", groupcol2).subAggregations(
@@ -280,7 +305,7 @@ class Application extends Controller {
       }
 
       val el_json = client.execute {
-        search("demofinal/demotest").matchAllQuery().aggs {
+        search("final4/type4").matchAllQuery().aggs {
           termsAgg("termagg1", groupcol).subAggregations(
             termsAgg("termagg2", groupcol1).subAggregations(
               termsAgg("termagg3", groupcol2).subAggregations(
