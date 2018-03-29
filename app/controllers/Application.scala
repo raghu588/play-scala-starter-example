@@ -116,7 +116,7 @@ class Application extends Controller {
       //        }.await
 
         client.execute {
-          search("diwofinal/diwotest").query(must(matchQuery(cols_match2(0).trim, cols_match2(1).trim), matchQuery(cols_match3(0).trim, cols_match3(1).trim), matchQuery(cols_match4(0).trim, cols_match4(1).replace("('", "").replace("')", "").trim))).aggregations {
+          search("demofinal/demotest").query(must(matchQuery(cols_match2(0).trim, cols_match2(1).trim), matchQuery(cols_match3(0).trim, cols_match3(1).trim), matchQuery(cols_match4(0).trim, cols_match4(1).replace("('", "").replace("')", "").trim))).aggregations {
             termsAgg("termagg1", groupcol).subaggs(
               sumAgg("sumagg1", sumcols.get(0).toString))
           }
@@ -179,7 +179,7 @@ class Application extends Controller {
       // println("groupcol..............:"+groupcol)
       //println("groupcol..............:"+groupcol1)
       val el_json = client.execute {
-        search("final4/type4").matchAllQuery().aggs {
+        search("demofinal/demotest").matchAllQuery().aggs {
           termsAgg("termagg1", groupcol).subAggregations(
             termsAgg("termagg2", groupcol1).subAggregations(
               sumAgg("sumagg1", sumcols.get(0).toString)
@@ -233,7 +233,7 @@ class Application extends Controller {
       }
 
       val el_json = client.execute {
-        search("final4/type4").matchAllQuery().aggs {
+        search("demofinal/demotest").matchAllQuery().aggs {
           termsAgg("termagg1", groupcol).subAggregations(
             termsAgg("termagg2", groupcol1).subAggregations(
               termsAgg("termagg3", groupcol2).subAggregations(
@@ -300,7 +300,7 @@ class Application extends Controller {
       }
 
       val el_json = client.execute {
-        search("final4/type4").matchAllQuery().aggs {
+        search("demofinal/demotest").matchAllQuery().aggs {
           termsAgg("termagg1", groupcol).subAggregations(
             termsAgg("termagg2", groupcol1).subAggregations(
               termsAgg("termagg3", groupcol2).subAggregations(
