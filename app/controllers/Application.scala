@@ -2,7 +2,7 @@ package controllers
 
 
 import com.sksamuel.elastic4s.ElasticDsl._
-import com.sksamuel.elastic4s.{ElasticClient, ElasticsearchClientUri, TcpClient}
+import com.sksamuel.elastic4s.{ElasticsearchClientUri, TcpClient}
 import play.api.mvc._
 
 class Application extends Controller {
@@ -40,9 +40,9 @@ class Application extends Controller {
 
       cqlqry = cqlqry.replace(";", "")
 
-      cols_match = cqlqry.split("and")//.map(x => x.replace("\"", ""))
+      cols_match = cqlqry.split("and") //.map(x => x.replace("\"", ""))
 
-      cols_match2 =cols_match(0).split("=")
+      cols_match2 = cols_match(0).split("=")
 
       cols_match3 = cols_match(1).split("=")
 
@@ -50,11 +50,11 @@ class Application extends Controller {
 
     }
 
-//    println("........:"+cols_match2(0).toString+"kkkkk:"+cols_match2(1).toString)
-//    println("........:"+cols_match3(0).toString+"kkkkk:"+cols_match3(1).toString)
-//    println("........:"+cols_match4(0).toString+"kkkkk:"+cols_match4(1).toString)
+    //    println("........:"+cols_match2(0).toString+"kkkkk:"+cols_match2(1).toString)
+    //    println("........:"+cols_match3(0).toString+"kkkkk:"+cols_match3(1).toString)
+    //    println("........:"+cols_match4(0).toString+"kkkkk:"+cols_match4(1).toString)
 
-//println("................:"+cols_match4(0).toString+".......:"+cols_match4(1).replace("('","").replace("')","").trim.toString)
+    //println("................:"+cols_match4(0).toString+".......:"+cols_match4(1).replace("('","").replace("')","").trim.toString)
 
 
     var groupcols = splitObj.getJSONArray("groupBy")
@@ -62,8 +62,8 @@ class Application extends Controller {
 
 
 
-//    val uri = ElasticsearchClientUri("elasticsearch://localhost:9300")
-//        val client = ElasticClient.remote(uri)
+    //    val uri = ElasticsearchClientUri("elasticsearch://localhost:9300")
+    //        val client = ElasticClient.remote(uri)
 
 
     var str = ""
@@ -101,30 +101,29 @@ class Application extends Controller {
         groupcol = groupcol + ".keyword"
       }
 
-  //    println("........"+groupcol)
+      //    println("........"+groupcol)
       val el_json = /*client.execute {
         search("final4/type4").matchQuery(colname,condition).aggs {
           termsAgg("termagg1", groupcol).subaggs(
             sumAgg("sumagg1", sumcols.get(0).toString))
         }
       }.await*/
-//        client.execute {
-//          search("final4/type4").matchQuery(cols_match(0).trim, cols_match(1).trim).aggregations {
-//            termsAgg("termagg1", groupcol).subaggs(
-//              sumAgg("sumagg1", sumcols.get(0).toString))
-//          }
-//        }.await
+      //        client.execute {
+      //          search("final4/type4").matchQuery(cols_match(0).trim, cols_match(1).trim).aggregations {
+      //            termsAgg("termagg1", groupcol).subaggs(
+      //              sumAgg("sumagg1", sumcols.get(0).toString))
+      //          }
+      //        }.await
 
         client.execute {
-          search("diwofinal/diwotest").query( must( matchQuery(cols_match2(0).trim,cols_match2(1).trim),matchQuery(cols_match3(0).trim,cols_match3(1).trim),matchQuery(cols_match4(0).trim,cols_match4(1).replace("('","").replace("')","").trim))).aggregations {
+          search("diwofinal/diwotest").query(must(matchQuery(cols_match2(0).trim, cols_match2(1).trim), matchQuery(cols_match3(0).trim, cols_match3(1).trim), matchQuery(cols_match4(0).trim, cols_match4(1).replace("('", "").replace("')", "").trim))).aggregations {
             termsAgg("termagg1", groupcol).subaggs(
               sumAgg("sumagg1", sumcols.get(0).toString))
           }
         }.await
 
 
-
-       println ("response......:" + el_json)
+      println("response......:" + el_json)
       //json parsing to get the KMM required output format
       var data = el_json.toString;
       data = data.substring(19, data.length - 1)
@@ -274,12 +273,8 @@ class Application extends Controller {
 
           }
         }
-
         outputJsonArr.put(outpuObj)
-
       }
-
-
     } else if (groupcols.length() == 4 && sumcols.length() == 1) {
 
       var groupcol = groupcols.get(0).toString
