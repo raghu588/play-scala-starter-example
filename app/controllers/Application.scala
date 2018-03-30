@@ -57,7 +57,9 @@ class Application extends Controller {
     if (cols_match3(0).toString.trim.equals("week")) {
       cols_match6 = cols_match3(0).toString.replace("week", "nrf_week")
     }
-
+    if (cols_match3(0).toString.trim.equals("month")) {
+      cols_match6 = cols_match3(0).toString.replace("month", "nrf_month")
+    }
 
 
 
