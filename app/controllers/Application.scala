@@ -2,7 +2,7 @@ package controllers
 
 
 import com.sksamuel.elastic4s.ElasticDsl._
-import com.sksamuel.elastic4s.{ElasticsearchClientUri, TcpClient}
+import com.sksamuel.elastic4s.{ElasticClient, ElasticsearchClientUri, TcpClient}
 import play.api.mvc._
 
 class Application extends Controller {
@@ -37,7 +37,6 @@ class Application extends Controller {
 
       cqlqry = cqlqry.substring(whrindx + 5)
 
-
       cqlqry = cqlqry.replace(";", "")
 
       cols_match = cqlqry.split("and") //.map(x => x.replace("\"", ""))
@@ -49,6 +48,24 @@ class Application extends Controller {
       cols_match4 = cols_match(2).split("In").map(x => x.replace("\"", ""))
 
     }
+
+    var cols_match5 = ""
+    cols_match5 = cols_match2(0).toString.replace("year", "nrf_year")
+
+    if (cols_match2(0).toString == "year") {
+      cols_match5 = cols_match2(0).toString.replace("year", "nrf_year")
+      println("........."+cols_match2(0))
+    }
+
+    var cols_match6 = ""
+    cols_match6 = cols_match3(0).toString.replace("week", "nrf_week")
+
+    if (cols_match3(0).toString.equals("week")) {
+      cols_match6 = cols_match3(0).toString.replace("week", "nrf_week")
+    }
+
+
+
 
     //    println("........:"+cols_match2(0).toString+"kkkkk:"+cols_match2(1).toString)
     //    println("........:"+cols_match3(0).toString+"kkkkk:"+cols_match3(1).toString)
@@ -62,8 +79,8 @@ class Application extends Controller {
 
 
 
-    //    val uri = ElasticsearchClientUri("elasticsearch://localhost:9300")
-    //        val client = ElasticClient.remote(uri)
+//        val uri = ElasticsearchClientUri("elasticsearch://localhost:9300")
+//            val client = ElasticClient.remote(uri)
 
 
     var str = ""
@@ -116,7 +133,7 @@ class Application extends Controller {
       //        }.await
 
         client.execute {
-          search("demofinal/demotest").query(must(matchQuery(cols_match2(0).trim, cols_match2(1).trim), matchQuery(cols_match3(0).trim, cols_match3(1).trim), matchQuery(cols_match4(0).trim, cols_match4(1).replace("('", "").replace("')", "").trim))).aggregations {
+          search("demofinal/demotest").query(must(matchQuery(cols_match5.trim, cols_match2(1).trim), matchQuery(cols_match6.trim, cols_match3(1).trim), matchQuery(cols_match4(0).trim, cols_match4(1).replace("('", "").replace("')", "").trim))).aggregations {
             termsAgg("termagg1", groupcol).subaggs(
               sumAgg("sumagg1", sumcols.get(0).toString))
           }
