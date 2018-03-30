@@ -46,21 +46,15 @@ class Application extends Controller {
       cols_match3 = cols_match(1).split("=")
 
       cols_match4 = cols_match(2).split("In").map(x => x.replace("\"", ""))
-
     }
 
     var cols_match5 = ""
-    cols_match5 = cols_match2(0).toString.replace("year", "nrf_year")
-
-    if (cols_match2(0).toString == "year") {
+    if (cols_match2(0).toString.trim.equals("year")) {
       cols_match5 = cols_match2(0).toString.replace("year", "nrf_year")
-      println("........."+cols_match2(0))
     }
 
     var cols_match6 = ""
-    cols_match6 = cols_match3(0).toString.replace("week", "nrf_week")
-
-    if (cols_match3(0).toString.equals("week")) {
+    if (cols_match3(0).toString.trim.equals("week")) {
       cols_match6 = cols_match3(0).toString.replace("week", "nrf_week")
     }
 
@@ -114,7 +108,6 @@ class Application extends Controller {
 
 
       if (cols.get(groupcol).get.equals("String")) {
-
         groupcol = groupcol + ".keyword"
       }
 
